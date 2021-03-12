@@ -76,9 +76,7 @@ def _add_spark_datasource(
     return datasource_name
 
 
-def generate_datasources(
-    kedro_context: KedroContext, ge_context: DataContext
-) -> List[str]:
+def generate_datasources(kedro_context: KedroContext, ge_context: DataContext) -> List[str]:
     catalog = kedro_context.catalog
     new_datasources = []
     existing_datasource_names = {ds["name"] for ds in ge_context.list_datasources()}
@@ -119,8 +117,6 @@ def datasource_new(directory):
     new_datasources = generate_datasources(kedro_context, ge_context)
 
     if new_datasources:
-        cli_message(
-            "Added {} New datasources to your project.".format(len(new_datasources))
-        )
+        cli_message("Added {} New datasources to your project.".format(len(new_datasources)))
     else:  # no datasource was created
         sys.exit(1)

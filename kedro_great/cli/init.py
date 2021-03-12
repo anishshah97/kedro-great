@@ -56,17 +56,11 @@ def init(target_directory, usage_stats):
         ge_context = toolkit.load_data_context_with_error_handling(ge_dir)
         new_datasources = generate_datasources(kedro_context, ge_context)
         if new_datasources:
-            cli_message(
-                "Added {} New datasources to your project.".format(len(new_datasources))
-            )
+            cli_message("Added {} New datasources to your project.".format(len(new_datasources)))
 
-    if click.confirm(
-        "Generate Basic Validation Suites based on Kedro Context?", default=True
-    ):
+    if click.confirm("Generate Basic Validation Suites based on Kedro Context?", default=True):
         kedro_context = load_context(Path.cwd())
         ge_context = toolkit.load_data_context_with_error_handling(ge_dir)
         new_datasources = generate_basic_suites(kedro_context, ge_context)
         if new_datasources:
-            cli_message(
-                "Added {} New datasources to your project.".format(len(new_datasources))
-            )
+            cli_message("Added {} New datasources to your project.".format(len(new_datasources)))

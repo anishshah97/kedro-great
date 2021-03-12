@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, NamedTuple
 import great_expectations as ge
 from great_expectations.core.batch import Batch
 from great_expectations.core.id_dict import BatchKwargs
-from great_expectations.datasource.types import BatchMarkers
+from great_expectations.core.batch_spec import BatchMarkers
 from great_expectations.validator.validator import Validator
 from great_expectations.exceptions import ConfigNotFoundError
 from kedro.framework.hooks import hook_impl
@@ -74,20 +74,18 @@ class KedroGreat:
             )
 
     @hook_impl
-    def before_node_run(
-        self, catalog: DataCatalog, inputs: Dict[str, Any], run_id: str
-    ) -> None:
+    def before_node_run(self, catalog: DataCatalog, inputs: Dict[str, Any], run_id: str) -> None:
         if self._before_node_run:
             self._run_validation(catalog, inputs, run_id, read_from_catalog=True)
 
     @hook_impl
-    def after_node_run(
-        self, catalog: DataCatalog, outputs: Dict[str, Any], run_id: str
-    ) -> None:
+    def after_node_run(self, catalog: DataCatalog, outputs: Dict[str, Any], run_id: str) -> None:
         if self._after_node_run:
             self._run_validation(catalog, outputs, run_id, read_from_catalog=False)
 
-    def _run_validation(self, catalog: DataCatalog, data: Dict[str, Any], run_id: str, read_from_catalog: bool):
+    def _run_validation(
+        self, catalog: DataCatalog, data: Dict[str, Any], run_id: str, read_from_catalog: bool
+    ):
         if self.expectation_context is None:
             return
 
@@ -122,21 +120,15 @@ class KedroGreat:
                             f"Suite {target_suite_name} for DataSet {dataset_name} failed!"
                         )
                     elif not validation.success:
-                        self._failed_suites.append(
-                            FailedSuite(target_suite_name, dataset_name)
-                        )
+                        self._failed_suites.append(FailedSuite(target_suite_name, dataset_name))
 
                     self._finished_suites.add(target_suite_name)
                     ran_suite_for_dataset = True
 
                 if not ran_suite_for_dataset:
-                    self.logger.warning(
-                        f"Missing Expectation Suite for DataSet: {dataset_name}"
-                    )
+                    self.logger.warning(f"Missing Expectation Suite for DataSet: {dataset_name}")
             except UnsupportedDataSet:
-                self.logger.warning(
-                    f"Unsupported DataSet Type: {dataset_name}({type(dataset)})"
-                )
+                self.logger.warning(f"Unsupported DataSet Type: {dataset_name}({type(dataset)})")
 
     def _run_suite(
         self,
@@ -146,9 +138,7 @@ class KedroGreat:
         target_expectation_suite_name: str,
         run_id: str,
     ):
-        target_suite = self.expectation_context.get_expectation_suite(
-            target_expectation_suite_name
-        )
+        target_suite = self.expectation_context.get_expectation_suite(target_expectation_suite_name)
         batch_markers = BatchMarkers(
             {
                 "ge_load_time": datetime.datetime.now(datetime.timezone.utc).strftime(
@@ -174,7 +164,10 @@ class KedroGreat:
         )
 
         try:
-            v = Validator(batch=batch, expectation_suite=target_suite,)
+            v = Validator(
+                batch=batch,
+                expectation_suite=target_suite,
+            )
         except ValueError:
             raise UnsupportedDataSet
 
